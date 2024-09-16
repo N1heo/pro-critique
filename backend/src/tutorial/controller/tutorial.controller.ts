@@ -1,5 +1,5 @@
 import { Body, Controller, Post, Get, Param, Query, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
-import { TutorialService } from 'src/tutorial/service/tutorial.service';
+import { TutorialService } from '../service/tutorial.service';
 import { CreateUserDto } from 'src/dto/create-user.dto';
 import { CreateCourseDto } from 'src/dto/create-course.dto';
 import { CreateCommentDto } from 'src/dto/create-comment.dto';

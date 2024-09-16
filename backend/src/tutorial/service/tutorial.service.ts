@@ -78,7 +78,7 @@ export class TutorialService {
     }
   }
 
-  async loginUser(loginUserDto: LoginUserDto): Promise<{ idToken: string; email: string; username: string; userId: string }> {
+  async loginUser(loginUserDto: LoginUserDto): Promise<{ idToken: string; userId: string; email: string | null; username: any }> {
     const { email, password } = loginUserDto;
   
     try {
