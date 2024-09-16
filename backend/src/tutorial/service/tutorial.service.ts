@@ -2,7 +2,7 @@ import { Injectable, NotFoundException, UnauthorizedException, InternalServerErr
 import { CreateUserDto } from 'src/dto/create-user.dto';
 import { CreateCourseDto } from 'src/dto/create-course.dto';
 import { CreateCommentDto } from 'src/dto/create-comment.dto';
-import { firestore, auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, storage, database } from '@src/firebase.config';
+import { firestore, auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, storage, database } from '../../firebase.config';
 import { ref as dbRef, get, set, update, remove, query, orderByChild, equalTo } from 'firebase/database';
 import { ref as storageRef, uploadBytes, getDownloadURL, getMetadata } from 'firebase/storage';
 import { LoginUserDto } from 'src/dto/login-user.dto';
