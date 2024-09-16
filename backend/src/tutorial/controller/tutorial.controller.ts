@@ -29,7 +29,7 @@ export class TutorialController {
     description: 'The user has been successfully logged in.',
   })
   @ApiResponse({ status: 401, description: 'Unauthorized.' })
-  async loginUser(@Body() loginUserDto: LoginUserDto): Promise<{ idToken: string, email: string, username: string, userId: string }> {
+  async loginUser(@Body() loginUserDto: LoginUserDto): Promise<{ idToken: string; userId: string; email: string | null; username: any }> {
     return await this.tutorialService.loginUser(loginUserDto);
   }
   
