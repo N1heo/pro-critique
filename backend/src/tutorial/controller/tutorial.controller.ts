@@ -1,12 +1,12 @@
 import { Body, Controller, Post, Get, Param, Query, UploadedFile, UseInterceptors, BadRequestException } from '@nestjs/common';
 import { TutorialService } from '../service/tutorial.service';
-import { CreateUserDto } from 'src/dto/create-user.dto';
-import { CreateCourseDto } from 'src/dto/create-course.dto';
-import { CreateCommentDto } from 'src/dto/create-comment.dto';
+import { CreateUserDto } from '../../dto/create-user.dto';
+import { CreateCourseDto } from '../../dto/create-course.dto';
+import { CreateCommentDto } from '../../dto/create-comment.dto';
 import { ApiTags, ApiOperation, ApiResponse, ApiConsumes, ApiBody, ApiParam } from '@nestjs/swagger';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { Express } from 'express';
-import { LoginUserDto } from 'src/dto/login-user.dto';
+import { LoginUserDto } from '../../dto/login-user.dto';
 
 @ApiTags('tutorial')
 @Controller('tutorial')
