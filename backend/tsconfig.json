@@ -10,13 +10,12 @@
     "sourceMap": true,
     "outDir": "./dist",
     "baseUrl": "./",
-    "incremental": true,
+    "paths": {
+      "@src/*": ["src/*"]
+    },
+    "strict": true,
     "skipLibCheck": true,
-    "strictNullChecks": false,
-    "noImplicitAny": false,
-    "strictBindCallApply": false,
-    "forceConsistentCasingInFileNames": false,
-    "noFallthroughCasesInSwitch": false,
+    "forceConsistentCasingInFileNames": true,
     "rootDir": "./src",
     "typeRoots": ["node_modules/@types"]
   },
