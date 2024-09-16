@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException, UnauthorizedException, InternalServerErrorException} from '@nestjs/common';
+import { Injectable, NotFoundException, UnauthorizedException, InternalServerErrorException } from '@nestjs/common';
 import { CreateUserDto } from 'src/dto/create-user.dto';
 import { CreateCourseDto } from 'src/dto/create-course.dto';
 import { CreateCommentDto } from 'src/dto/create-comment.dto';
@@ -11,30 +11,30 @@ import { collection, doc, setDoc, getDoc, query as firestoreQuery, where, getDoc
 
 @Injectable()
 export class TutorialService {
-
+  private userCredential: any;
   async getUserComments(userId: string): Promise<any[]> {
     const coursesRef = dbRef(database, 'courses');
     const snapshot = await get(coursesRef);
     const courses = snapshot.val();
 
-    const userComments = [];
+    const userComments: any[] = [];
 
-    console.log('Courses data:', courses);  // Логирование курсов
-    console.log('Searching comments for userId:', userId);  // Логирование поиска по userId
+    console.log('Courses data:', courses);
+    console.log('Searching comments for userId:', userId);
 
     for (const courseId in courses) {
       const course = courses[courseId];
       if (course.comments) {
-        console.log(`Course ${courseId} has comments:`, course.comments);  // Логирование комментариев
+        console.log(`Course ${courseId} has comments:`, course.comments);
         for (const commentKey in course.comments) {
           const comment = course.comments[commentKey];
-          console.log(`Checking comment ${commentKey}:`, comment);  // Логирование каждого комментария
+          console.log(`Checking comment ${commentKey}:`, comment);
           if (comment.userId === userId) {
-            console.log(`Found matching comment ${commentKey} for user ${userId}`);  // Логирование совпадений
+            console.log(`Found matching comment ${commentKey} for user ${userId}`);
             userComments.push({
               courseName: course.course_name,
               commentId: commentKey,
-              ...comment
+              ...comment,
             });
           }
         }
@@ -42,21 +42,22 @@ export class TutorialService {
     }
 
     if (userComments.length === 0) {
-      console.log('No comments found for user', userId);  // Логирование отсутствия комментариев
-      // throw new NotFoundException('User comments not found'); // Убираем выбрасывание ошибки, если комментарии не найдены
+      console.log('No comments found for user', userId);
     }
 
     return userComments;
   }
-  
-  
 
   async createUserData(createUserDto: CreateUserDto): Promise<{ id: string }> {
     const { email, password, username } = createUserDto;
 
     try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      const user = userCredential.user;
+      if (email != null) {
+        if (password != null) {
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+        }
+      }
+      const user = this.userCredential.user;
 
       const userId = user.uid;
 
@@ -80,25 +81,25 @@ export class TutorialService {
 
   async loginUser(loginUserDto: LoginUserDto): Promise<{ idToken: string; userId: string; email: string | null; username: any }> {
     const { email, password } = loginUserDto;
-  
+
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
-  
+
       const idToken = await user.getIdToken();
       const userDoc = await getDoc(doc(firestore, 'users', user.uid));
       const userData = userDoc.data();
-  
+
       if (!userData) {
         throw new NotFoundException('User not found in Firestore');
       }
-  
-      return { idToken, email: user.email, username: userData.username, userId: user.uid };
+
+      return { idToken, email: user.email, username: userData?.username, userId: user.uid };
     } catch (error) {
       throw new UnauthorizedException('Invalid credentials');
     }
   }
-  
+
   async getAllUsers(): Promise<any[]> {
     const usersCollection = collection(firestore, 'users');
     const userDocs = await getDocs(usersCollection);
@@ -122,33 +123,33 @@ export class TutorialService {
   async addCommentToCourse(courseId: string, commentId: string, createCommentDto: CreateCommentDto, userId: string): Promise<void> {
     try {
       console.log('Adding comment to course:', { courseId, commentId, createCommentDto, userId });
-  
+
       const userRef = dbRef(database, 'users/' + userId);
       const userSnapshot = await get(userRef);
       const userData = userSnapshot.val();
-      
+
       if (!userData) {
         throw new NotFoundException('User not found in Realtime Database');
       }
-      
+
       const courseRef = dbRef(database, 'courses/' + courseId);
       const snapshot = await get(courseRef);
       const course = snapshot.val();
-      
+
       if (!course) {
         throw new NotFoundException('Course not found');
       }
-      
+
       if (!course.comments) {
         course.comments = {};
       }
-      
+
       course.comments[commentId] = {
         ...createCommentDto,
         userId: userData.id,
-        username: userData.username
+        username: userData.username,
       };
-      
+
       await update(courseRef, { comments: course.comments });
       await this.updateCourseRating(courseId);
     } catch (error) {
@@ -161,49 +162,49 @@ export class TutorialService {
     const courseRef = dbRef(database, 'courses/' + courseId);
     const snapshot = await get(courseRef);
     const course = snapshot.val();
-  
+
     if (!course) {
       throw new NotFoundException('Course not found');
     }
-  
+
     const comment = course.comments[commentId];
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
-  
+
     if (comment.userId !== userId) {
       throw new UnauthorizedException('You are not authorized to delete this comment');
     }
-  
+
     delete course.comments[commentId];
     await update(courseRef, { comments: course.comments });
     await this.updateCourseRating(courseId);
   }
-  
+
   async updateCommentInCourse(courseId: string, commentId: string, createCommentDto: CreateCommentDto, userId: string): Promise<void> {
     const courseRef = dbRef(database, 'courses/' + courseId);
     const snapshot = await get(courseRef);
     const course = snapshot.val();
-  
+
     if (!course) {
       throw new NotFoundException('Course not found');
     }
-  
+
     const comment = course.comments[commentId];
     if (!comment) {
       throw new NotFoundException('Comment not found');
     }
-  
+
     if (comment.userId !== userId) {
       throw new UnauthorizedException('You are not authorized to update this comment');
     }
-  
+
     course.comments[commentId] = {
       ...createCommentDto,
       userId,
       username: comment.username,
     };
-  
+
     await update(courseRef, { comments: course.comments });
     await this.updateCourseRating(courseId);
   }
@@ -255,7 +256,7 @@ export class TutorialService {
   async getFileUrl(fileName: string): Promise<string> {
     try {
       const fileRef = storageRef(storage, `icons/${fileName}`);
-      await getMetadata(fileRef); // Проверка существования файла
+      await getMetadata(fileRef); // Check file existence
       const downloadURL = await getDownloadURL(fileRef);
       return downloadURL;
     } catch (error) {
@@ -263,33 +264,34 @@ export class TutorialService {
     }
   }
 
-  async getCoursesSortedByRating(order: string): Promise<any[]> {
+  async getCoursesSortedByRating(order: 'asc' | 'desc'): Promise<any[]> {
     const coursesRef = dbRef(database, 'courses');
     const snapshot = await get(coursesRef);
     const courses = snapshot.val();
-    const coursesArray = Object.values(courses || {});
-    coursesArray.sort((a: any, b: any) => {
-      const ratingA = this.calculateAverageRating(a.comments);
-      const ratingB = this.calculateAverageRating(b.comments);
+
+    const courseArray = Object.values(courses || {});
+    return courseArray.sort((a: any, b: any) => {
+      const ratingA = a.rating || 0;
+      const ratingB = b.rating || 0;
       return order === 'asc' ? ratingA - ratingB : ratingB - ratingA;
     });
-    return coursesArray;
   }
 
   private async updateCourseRating(courseId: string): Promise<void> {
     const courseRef = dbRef(database, 'courses/' + courseId);
     const snapshot = await get(courseRef);
     const course = snapshot.val();
-    if (course && course.comments) {
-      const ratings = Object.values(course.comments).map((comment: any) => comment.rating);
-      const averageRating = ratings.length ? (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1) : '0';
-      await update(courseRef, { common_rate: averageRating });
-    }
-  }
 
-  private calculateAverageRating(comments: any): number {
-    const ratings = Object.values(comments || {}).map((comment: any) => comment.rating);
-    const sum = ratings.reduce((a, b) => a + b, 0);
-    return ratings.length ? sum / ratings.length : 0;
+    if (!course) {
+      throw new NotFoundException('Course not found');
+    }
+
+    const comments = course.comments || {};
+    const commentArray = Object.values(comments);
+
+    const totalRating = commentArray.reduce((sum: number, comment: any) => sum + (comment.rating || 0), 0);
+    const averageRating = commentArray.length > 0 ? totalRating / commentArray.length : 0;
+
+    await update(courseRef, { rating: averageRating });
   }
 }
